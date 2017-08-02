@@ -96,14 +96,27 @@ oldSessionHelper = (event, context) => {
             // Intent Request
              switch(event.request.intent.name) {
                 
-                case "AddDetails": 
+				case "AMAZON.YesIntent": 
+					if(event.session.attributes)
+					{
+						let sessionType = event.session.attributes.SessionAttributeType;
+						
+						console.log(sessionType);
+						if(sessionType == "UpdateStatusWOApplication") {
+							let company = event.session.attributes.Company;
+							let position =  event.session.attributes.Position;
+							let appStatus =  event.session.attributes.ApplicationStatus;
+							addApplication(company, position, appStatus, userid, context);
+						}
+
+					}
+					break;
 				
-				    //console.log("Add Details Intent");
-                    
+				case "UpdateStatus":
+					
 					var company = "", position = "", appStatus = "";
 					//console.log(company + " " + position + " " + date);
 					
-					//Check if company name is mentioned in corporation and position is mentioned
 					if(("value" in event.request.intent.slots.Corporation) && ("value" in event.request.intent.slots.Position) && ("value" in event.request.intent.slots.Status)) {
 						
 						//Retrieve data from input speech
@@ -124,7 +137,18 @@ oldSessionHelper = (event, context) => {
 						updateApplicationStatus(company, position, appStatus, userid, context);
 						
 					}
-					else if(("value" in event.request.intent.slots.Corporation) && ("value" in event.request.intent.slots.Position)) {
+					
+					break;
+				
+                case "AddDetails": 
+				
+				    //console.log("Add Details Intent");
+                    
+					var company = "", position = "", appStatus = "";
+					//console.log(company + " " + position + " " + date);
+					
+					//Check if company name is mentioned in corporation and position is mentioned
+					if(("value" in event.request.intent.slots.Corporation) && ("value" in event.request.intent.slots.Position)) {
 						
 						//Retrieve data from input speech
 						company = event.request.intent.slots.Corporation.value;
@@ -772,6 +796,15 @@ updateApplicationStatus = (company, position, appStatus, userid, context) => {
 				} 
 			});
 			
+		}
+		else if(!appFlag) {
+			let sessionAttributes = {
+				"Company": company,
+				"Position": position,
+				"ApplicationStatus": appStatus,
+				"SessionAttributeType": "UpdateStatusWOApplication"
+			};
+			respondBack("Cannot find the specified application. Do you want to add it as a new application?", false, sessionAttributes, context);
 		}
 		else if(appFlag == null) {
 			addApplication(company, position, appStatus, userid, context);
